@@ -10,6 +10,7 @@ const DTOValidationMiddleware =
 		validate(dtoObject, { skipMissingProperties })
 			.then((errors: ValidationError[]) => {
 				if (errors.length > 0) {
+					console.log('errors >>>> dto ', errors);
 					return res.status(400).json({ message: errors });
 				} else {
 					sanitize(dtoObject);

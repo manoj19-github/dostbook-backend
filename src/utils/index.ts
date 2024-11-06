@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { createTransport, SendMailOptions } from 'nodemailer';
+import { ACCESS_TOKEN_SECRET, EMAIL_PASSWORD, EMAIL_USERNAME, REFRESH_TOKEN_SECRET } from '../../environment';
 export class UtilsMain {
 	static generateToken(userId: any): { accessToken: string; refreshToken: string } {
-		const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '7d' });
-		const refreshToken = jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: '30d' });
+		const accessToken = jwt.sign({ userId }, ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
+		const refreshToken = jwt.sign({ userId }, REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
 		return { accessToken, refreshToken };
 	}
 	static async sendMailMethod(mailOptions: SendMailOptions): Promise<boolean> {
@@ -14,8 +15,8 @@ export class UtilsMain {
 			port: 465,
 			secure: true,
 			auth: {
-				user: process.env.EMAIL_USERNAME,
-				pass: process.env.EMAIL_PASSWORD
+				user: EMAIL_USERNAME,
+				pass: EMAIL_PASSWORD
 			},
 			tls: {
 				rejectUnAuthorized: true

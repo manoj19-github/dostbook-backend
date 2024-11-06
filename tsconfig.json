@@ -30,6 +30,6 @@
 			"@/utils/*": ["utils/*"]
 		}
 	},
-	"include": ["src"],
+	"include": ["src", "environment.ts"],
 	"exclude": ["node_modules"]
 }

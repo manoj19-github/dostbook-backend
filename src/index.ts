@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import express, { Application, Request, Response, json, urlencoded } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { configMain } from './config';
 import { errorHandler, notFound } from './http/middlewares/errorHandler.middleware';
 import RoutesMain from './routes';
 class ExpressApp {
@@ -36,7 +37,9 @@ class ExpressApp {
 	}
 	public listen(): void {
 		// connectDB();
+
 		this.app.listen(this.PORT, () => {
+			configMain.connectDatabase();
 			console.log(`Server is listening on  port : ${this.PORT}`);
 		});
 	}

@@ -1,11 +1,13 @@
 import { Trim } from 'class-sanitizer';
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
 export class LoginDTO {
 	@IsEmail({}, { message: 'Provided Email is not valid' })
 	@IsNotEmpty()
 	@Trim()
 	email: string | undefined;
-	@IsPhoneNumber()
+	@Matches(/^(\+\d{1,3}[- ]?)?\d{10}$/gm, {
+		message: 'Phone number is not valid'
+	})
 	@IsString()
 	@IsNotEmpty()
 	@Trim()
@@ -17,6 +19,9 @@ export class VerifyOTP {
 	@IsNotEmpty()
 	@Trim()
 	email: string | undefined;
+	@Matches(/^(\+\d{1,3}[- ]?)?\d{10}$/gm, {
+		message: 'Phone number is not valid'
+	})
 	@IsString()
 	@IsNotEmpty()
 	@Trim()

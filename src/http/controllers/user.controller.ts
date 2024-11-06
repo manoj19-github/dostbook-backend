@@ -48,11 +48,13 @@ export class UserController {
 	}
 	static async gettingStarted(req: Request, response: Response, next: NextFunction) {
 		try {
+			console.log('GETTINGsTARTED ><>>>>>>>>>>>>>>>>>>>>> ', req.body);
 			const { phoneNumber } = req.body;
 			const isUserExists = await UserModel.findOne({ phoneNumber });
 			if (isUserExists) return response.status(200).json({ message: 'User already exists', navigateTo: 'LoginScreen' });
 			return response.status(200).json({ message: `User does'nt exists`, navigateTo: 'RegisterScreen' });
 		} catch (error) {
+			console.log('error: ', error);
 			next(error);
 		}
 	}
@@ -63,7 +65,24 @@ export class UserController {
 			const isUserExists = await UserModel.findOne({ phoneNumber });
 			if (isUserExists) throw new HttpException(400, 'User already exists');
 			await UserModel.create({ phoneNumber, name, email });
-			response.status(200).json({ message: 'Congratulations! You have successfully registered.' });
+			const selectedUser = await UserModel.findOne({ phoneNumber, name, email });
+			if (!selectedUser) throw new HttpException(400, 'User already exists');
+			const loginOTP = UtilsMain.generateOTP();
+			const mailOptions: SendMailOptions = UtilsMain.GetMailOptions({
+				subject: `Dostbook OTP login`,
+				to: selectedUser.email,
+				expirationTime: 60,
+				name: selectedUser.name,
+				otp: loginOTP
+			});
+			UtilsMain.sendMailMethod(mailOptions)
+				.then(async (res) => {
+					await otpMasterModel.create({ otp: loginOTP, userId: selectedUser._id, genarateTime: Date.now(), type: OTPMasterEnum.userlogin });
+					return response.status(200).json({ message: 'REgistration successfull, an OTP sent successfully in your email address' });
+				})
+				.catch(() => {
+					throw new HttpException(400, 'Something went wrong');
+				});
 		} catch (error) {
 			next(error);
 		}

@@ -3,7 +3,8 @@ import validator from 'validator';
 import { IUserSchema } from './user.schema';
 
 export enum OTPMasterEnum {
-	userlogin = 'userlogin'
+	userlogin = 'userlogin',
+	register = 'register'
 }
 
 export interface IOTPSchema extends Document {

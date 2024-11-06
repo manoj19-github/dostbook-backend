@@ -1,5 +1,5 @@
 import { Trim } from 'class-sanitizer';
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
 export class RegistrationDTO {
 	@IsString()
 	@Trim()
@@ -10,7 +10,9 @@ export class RegistrationDTO {
 	@IsNotEmpty()
 	@Trim()
 	email: string | undefined;
-	@IsPhoneNumber()
+	@Matches(/^(\+\d{1,3}[- ]?)?\d{10}$/gm, {
+		message: 'Phone number is not valid'
+	})
 	@IsString()
 	@IsNotEmpty()
 	@Trim()

@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-
+import { DATABASE_URL } from '../../environment';
 export class configMain {
 	static async connectDatabase() {
 		try {
 			await mongoose.set('strictQuery', true);
-			await mongoose.connect(process.env.DATABASE_URL!, {
+			await mongoose.connect(DATABASE_URL, {
 				// useNewUrlParser:true,
 				// useUnifiedTopology:true,
 				// directConnection:true,
