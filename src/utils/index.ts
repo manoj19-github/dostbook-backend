@@ -46,10 +46,7 @@ export class UtilsMain {
 			from: process.env.EMAIL_USERNAME!,
 			to,
 			subject,
-			html:
-				`
-
-              <h1 style="text-align:center">Dostbook</h1>
+			html: `<h1 style="text-align:center">Dostbook</h1>
               <p style="text-align:center"> <small>Connect Safely with your friends</small></p>
               <p></p>
               <p></p>
@@ -57,13 +54,11 @@ export class UtilsMain {
               <p style="text-align:justify">Hi ${name}, Welcome to Dostbook  </p>
               </p>
               <p style="text-align:justify"> Your One Time Password is :  ${otp}</p>
-      ` + expirationTime
-					? `<p style="text-align:justify;font-size:11px">This OTP will expire in ${expirationTime} seconds</p>`
-					: ''
+      ${expirationTime ? `<p style="text-align:justify;font-size:11px">This OTP will expire in ${expirationTime} seconds</p>` : ''}`
 		};
 		return mailOptions;
 	}
-	static generateOTP(otpLength: number = 6): string {
+	static generateOTP(otpLength: number = 5): string {
 		const digits = '0123456789abcdefghijklmnopqrstuvwxyz';
 
 		let otp: string = '';

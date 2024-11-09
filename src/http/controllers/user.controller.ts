@@ -11,11 +11,12 @@ export class UserController {
 			const { email } = req.body;
 			const isUserExists = await UserModel.findOne({ email });
 			if (!isUserExists) throw new HttpException(400, 'User not found');
+			if (!isUserExists.isEmailVerified) throw new HttpException(400, 'User not registered');
 			const loginOTP = UtilsMain.generateOTP();
 			const mailOptions: SendMailOptions = UtilsMain.GetMailOptions({
 				subject: `Dostbook OTP login`,
 				to: isUserExists.email,
-				expirationTime: 60,
+				expirationTime: 180,
 				name: isUserExists.name,
 				otp: loginOTP
 			});
@@ -34,12 +35,18 @@ export class UserController {
 	static async verifyOTPForLogin(req: Request, response: Response, next: NextFunction) {
 		try {
 			const { otp, email } = req.body;
+			console.log('verify >>>>>>>>>>>>>>>>>> ', { otp, email });
 			const isUserExists = await UserModel.findOne({ email });
 			if (!isUserExists) throw new HttpException(400, 'User not found');
-			const otpMaster = await otpMasterModel.findOne({ otpVal: otp, userId: isUserExists._id, type: OTPMasterEnum.userlogin });
+			const otpMaster = await otpMasterModel.findOne({
+				otpVal: otp.toLowerCase(),
+				userId: isUserExists._id,
+				type: OTPMasterEnum.userlogin
+			});
 			if (!otpMaster) throw new HttpException(400, 'OTP not found');
-			if (Date.now() - otpMaster.genarateTime.getTime() > 60000) throw new HttpException(400, 'OTP expired');
+			if (Date.now() - otpMaster.genarateTime.getTime() > 3 * 60 * 1000) throw new HttpException(400, 'OTP expired');
 			await otpMasterModel.deleteOne({ _id: otpMaster._id });
+			await UserModel.updateOne({ _id: isUserExists._id }, { $set: { isEmailVerified: true } });
 			const { accessToken, refreshToken } = UtilsMain.generateToken(isUserExists._id);
 			response.status(200).json({ accessToken, refreshToken, user: isUserExists });
 		} catch (error) {
@@ -51,7 +58,11 @@ export class UserController {
 			console.log('GETTINGsTARTED ><>>>>>>>>>>>>>>>>>>>>> ', req.body);
 			const { phoneNumber } = req.body;
 			const isUserExists = await UserModel.findOne({ phoneNumber });
-			if (isUserExists) return response.status(200).json({ message: 'User already exists', navigateTo: 'LoginScreen' });
+			if (isUserExists && isUserExists.isEmailVerified)
+				return response.status(200).json({ message: 'User already exists', navigateTo: 'LoginScreen' });
+			if (isUserExists && !isUserExists.isEmailVerified) {
+				await UserModel.deleteOne({ _id: isUserExists._id });
+			}
 			return response.status(200).json({ message: `User does'nt exists`, navigateTo: 'RegisterScreen' });
 		} catch (error) {
 			console.log('error: ', error);
@@ -60,30 +71,47 @@ export class UserController {
 	}
 
 	static async registerHandler(req: Request, response: Response, next: NextFunction) {
+		let session: any;
 		try {
+			session = await UserModel.startSession();
+			session.startTransaction();
 			const { phoneNumber, name, email } = req.body;
+			console.log({ phoneNumber, name, email });
+			const opts = { session };
 			const isUserExists = await UserModel.findOne({ phoneNumber });
 			if (isUserExists) throw new HttpException(400, 'User already exists');
-			await UserModel.create({ phoneNumber, name, email });
-			const selectedUser = await UserModel.findOne({ phoneNumber, name, email });
-			if (!selectedUser) throw new HttpException(400, 'User already exists');
+			const newUser = await new UserModel({ phoneNumber, name, email }).save(opts);
 			const loginOTP = UtilsMain.generateOTP();
+			console.log('loginOTP: ', loginOTP);
 			const mailOptions: SendMailOptions = UtilsMain.GetMailOptions({
 				subject: `Dostbook OTP login`,
-				to: selectedUser.email,
+				to: email,
 				expirationTime: 60,
-				name: selectedUser.name,
-				otp: loginOTP
+				name: name,
+				otp: loginOTP.toLowerCase()
 			});
 			UtilsMain.sendMailMethod(mailOptions)
 				.then(async (res) => {
-					await otpMasterModel.create({ otp: loginOTP, userId: selectedUser._id, genarateTime: Date.now(), type: OTPMasterEnum.userlogin });
+					await otpMasterModel.create({
+						otpVal: loginOTP.toLowerCase(),
+						userId: newUser._id,
+						genarateTime: Date.now(),
+						type: OTPMasterEnum.userlogin
+					});
+					await session.commitTransaction();
+					session.endSession();
 					return response.status(200).json({ message: 'REgistration successfull, an OTP sent successfully in your email address' });
 				})
-				.catch(() => {
+				.catch((error: any) => {
+					console.log('error occured ', error);
 					throw new HttpException(400, 'Something went wrong');
 				});
 		} catch (error) {
+			if (session) {
+				await session.abortTransaction();
+				session.endSession();
+			}
+
 			next(error);
 		}
 	}

@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import validator from 'validator';
 import { IUserSchema } from './user.schema';
 
 export enum OTPMasterEnum {
@@ -27,8 +26,7 @@ export const OTPMasterSchema: Schema<IOTPSchema> = new Schema(
 		},
 		otpVal: {
 			type: String,
-			required: [true, 'Please provide a otp '],
-			validate: [validator.isMobilePhone, 'Please provide a valid phone number']
+			required: [true, 'Please provide a otp ']
 		},
 		genarateTime: {
 			type: Date,

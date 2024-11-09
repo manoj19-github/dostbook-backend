@@ -15,13 +15,12 @@ export class LoginDTO {
 }
 
 export class VerifyOTP {
-	@IsEmail({}, { message: 'Provided Email is not valid' })
 	@IsNotEmpty()
 	@Trim()
-	email: string | undefined;
-	@Matches(/^(\+\d{1,3}[- ]?)?\d{10}$/gm, {
-		message: 'Phone number is not valid'
+	@Matches(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/gm, {
+		message: 'Email address is not valid'
 	})
+	email: string | undefined;
 	@IsString()
 	@IsNotEmpty()
 	@Trim()

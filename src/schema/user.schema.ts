@@ -7,6 +7,7 @@ export interface IUserSchema extends Document {
 	phoneNumber: string;
 	isSpam: boolean;
 	isFraudCount: number;
+	isEmailVerified: boolean;
 }
 export const UserSchema: Schema<IUserSchema> = new Schema(
 	{
@@ -22,6 +23,10 @@ export const UserSchema: Schema<IUserSchema> = new Schema(
 			required: [true, 'Please provide an email'],
 			unique: true,
 			validate: [validator.isEmail, 'Please provide a valid email']
+		},
+		isEmailVerified: {
+			type: Boolean,
+			default: false
 		},
 		phoneNumber: {
 			type: String,
