@@ -35,7 +35,7 @@ export class UserController {
 	static async verifyOTPForLogin(req: Request, response: Response, next: NextFunction) {
 		try {
 			const { otp, email } = req.body;
-			console.log('verify >>>>>>>>>>>>>>>>>> ', { otp, email });
+
 			const isUserExists = await UserModel.findOne({ email });
 			if (!isUserExists) throw new HttpException(400, 'User not found');
 			const otpMaster = await otpMasterModel.findOne({
@@ -55,7 +55,7 @@ export class UserController {
 	}
 	static async gettingStarted(req: Request, response: Response, next: NextFunction) {
 		try {
-			console.log('GETTINGsTARTED ><>>>>>>>>>>>>>>>>>>>>> ', req.body);
+
 			const { phoneNumber } = req.body;
 			const isUserExists = await UserModel.findOne({ phoneNumber });
 			if (isUserExists && isUserExists.isEmailVerified)
@@ -65,7 +65,7 @@ export class UserController {
 			}
 			return response.status(200).json({ message: `User does'nt exists`, navigateTo: 'RegisterScreen' });
 		} catch (error) {
-			console.log('error: ', error);
+
 			next(error);
 		}
 	}
@@ -76,13 +76,13 @@ export class UserController {
 			session = await UserModel.startSession();
 			session.startTransaction();
 			const { phoneNumber, name, email } = req.body;
-			console.log({ phoneNumber, name, email });
+
 			const opts = { session };
 			const isUserExists = await UserModel.findOne({ phoneNumber });
 			if (isUserExists) throw new HttpException(400, 'User already exists');
 			const newUser = await new UserModel({ phoneNumber, name, email }).save(opts);
 			const loginOTP = UtilsMain.generateOTP();
-			console.log('loginOTP: ', loginOTP);
+
 			const mailOptions: SendMailOptions = UtilsMain.GetMailOptions({
 				subject: `Dostbook OTP login`,
 				to: email,
@@ -103,7 +103,6 @@ export class UserController {
 					return response.status(200).json({ message: 'REgistration successfull, an OTP sent successfully in your email address' });
 				})
 				.catch((error: any) => {
-					console.log('error occured ', error);
 					throw new HttpException(400, 'Something went wrong');
 				});
 		} catch (error) {
